@@ -21,7 +21,13 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // 🛡️ Middleware Engine Setup
-app.use(cors());
+// 🛡️ Middleware Engine Setup (Configured for secure full-stack cross-origin requests)
+app.use(cors({
+  origin: 'https://agile-bug-tracker.vercel.app', // Allows your specific frontend to connect
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'x-auth-token'] // Explicitly permits your security tokens through the gate
+}));
+
 app.use(express.json());
 
 // 🔌 Connect MongoDB (Safe for public GitHub visibility)
