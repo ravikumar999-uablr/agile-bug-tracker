@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import AuthPage from './components/AuthPage';
 
-const API_URL = 'http://localhost:5000/api/tickets';
+const API_URL = 'https://agile-bug-tracker-backend.onrender.com/api/tickets';
 
 function App() {
   const [user, setUser] = useState(null);

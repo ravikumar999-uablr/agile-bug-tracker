@@ -18,7 +18,7 @@ function AuthPage({ onLoginSuccess }) {
     const payload = isLoginView ? { email, password } : { name, email, password };
 
     try {
-      const response = await axios.post(`http://localhost:5000/api/auth/${endpoint}`, payload);
+      const response = await axios.post(`https://agile-bug-tracker-backend.onrender.com/api/auth/${endpoint}`, payload);
       
       // Save the encrypted credential passport token and user details inside the browser storage
       localStorage.setItem('token', response.data.token);
