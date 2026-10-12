@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import AuthPage from './components/AuthPage';
 
-const API_URL = 'https://agile-bug-tracker-backend.onrender.com/api/tickets';
+const API_URL = 'https://onrender.com';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -27,10 +27,15 @@ function App() {
     }
   }, [user]);
 
+  // 📡 1. FETCH TICKETS FUNCTION (Fixed: Added Authorization Headers)
   const fetchTickets = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(API_URL);
+      const token = localStorage.getItem('token'); // Grab token passport from memory
+      
+      const response = await axios.get(API_URL, {
+        headers: { 'x-auth-token': token } // Secure entry clearance
+      });
       setTickets(response.data);
     } catch (error) {
       console.error("Error fetching tickets:", error);
@@ -39,16 +44,24 @@ function App() {
     }
   };
 
+  // 📡 2. CREATE TICKET FUNCTION (Correctly passing data payload then configurations)
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!newTicketTitle.trim()) return;
 
     try {
-      const response = await axios.post(API_URL, {
-        title: newTicketTitle,
-        priority: newTicketPriority,
-        userId: user.id // Send the authenticated active user ID along with our data payload
-      });
+      const token = localStorage.getItem('token');
+      const response = await axios.post(
+        API_URL, 
+        { 
+          title: newTicketTitle, 
+          priority: newTicketPriority 
+        }, 
+        { 
+          headers: { 'x-auth-token': token } 
+        }
+      );
+
       setTickets([response.data, ...tickets]);
       setNewTicketTitle('');
       setNewTicketPriority('Medium');
@@ -58,9 +71,13 @@ function App() {
     }
   };
 
+  // 📡 3. DELETE TICKET FUNCTION (Fixed: Added Authorization Headers)
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`${API_URL}/${id}`);
+      const token = localStorage.getItem('token');
+      await axios.delete(`${API_URL}/${id}`, {
+        headers: { 'x-auth-token': token } // Secure delete clearance
+      });
       setTickets(tickets.filter(ticket => ticket._id !== id));
     } catch (error) {
       console.error("Error deleting ticket:", error);
