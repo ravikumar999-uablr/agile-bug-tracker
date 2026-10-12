@@ -23,7 +23,7 @@ app.use(cors());
 app.use(express.json());
 
 // 🔌 Connect MongoDB (Using your active cluster credentials directly as fallback)
-const mongoConnectionURI = process.env.MONGO_URI || "mongodb+srv://ravikumaruablr_db_user:0amFLMMB0dXykNEH@cluster0.waikcks.mongodb.net/bugtracker?retryWrites=true&w=majority";
+const mongoConnectionURI = process.env.MONGO_URI || "mongodb+srv://ravikumaruablr_db_user:YOUR_DB_PASSWORD@cluster0.waikcks.mongodb.net/bugtracker?retryWrites=true&w=majority";
 
 mongoose.connect(mongoConnectionURI)
   .then(() => console.log('🔌 Cloud MongoDB connected securely!'))
