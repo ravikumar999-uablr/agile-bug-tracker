@@ -13,6 +13,8 @@ import Ticket from './models/Ticket.js';
 // 🛠️ Windows Path Handling Configurations for ES Modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// Explicitly forces Node to look exactly inside your backend folder for the .env file
 dotenv.config({ path: path.join(__dirname, '.env') });
 
 const app = express();
@@ -22,7 +24,8 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-// 🔌 Connect MongoDB (Using your active cluster credentials directly as fallback)
+// 🔌 Connect MongoDB (Safe for public GitHub visibility)
+// The runtime will prioritize reading your real secret password from process.env.MONGO_URI inside your local hidden .env file.
 const mongoConnectionURI = process.env.MONGO_URI || "mongodb+srv://ravikumaruablr_db_user:YOUR_DB_PASSWORD@cluster0.waikcks.mongodb.net/bugtracker?retryWrites=true&w=majority";
 
 mongoose.connect(mongoConnectionURI)
