@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import AuthPage from './components/AuthPage';
 
-const API_URL = 'https://agile-bug-tracker-backend.onrender.com/api/tickets'; // Backend API endpoint for ticket operations
+const API_URL = 'https://onrender.com';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -12,7 +12,6 @@ function App() {
   const [newTicketPriority, setNewTicketPriority] = useState('Medium');
   const [loading, setLoading] = useState(false);
 
-  // 🔄 Check if user is already logged in on page load
   useEffect(() => {
     const savedUser = localStorage.getItem('user');
     if (savedUser) {
@@ -20,21 +19,18 @@ function App() {
     }
   }, []);
 
-  // Fetch tickets whenever the logged-in user state updates
   useEffect(() => {
     if (user) {
       fetchTickets();
     }
   }, [user]);
 
-  // 📡 1. FETCH TICKETS FUNCTION (Fixed: Added Authorization Headers)
   const fetchTickets = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token'); // Grab token passport from memory
-      
+      const token = localStorage.getItem('token');
       const response = await axios.get(API_URL, {
-        headers: { 'x-auth-token': token } // Secure entry clearance
+        headers: { 'x-auth-token': token }
       });
       setTickets(response.data);
     } catch (error) {
@@ -44,7 +40,6 @@ function App() {
     }
   };
 
-  // 📡 2. CREATE TICKET FUNCTION (Correctly passing data payload then configurations)
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!newTicketTitle.trim()) return;
@@ -53,15 +48,9 @@ function App() {
       const token = localStorage.getItem('token');
       const response = await axios.post(
         API_URL, 
-        { 
-          title: newTicketTitle, 
-          priority: newTicketPriority 
-        }, 
-        { 
-          headers: { 'x-auth-token': token } 
-        }
+        { title: newTicketTitle, priority: newTicketPriority }, 
+        { headers: { 'x-auth-token': token } }
       );
-
       setTickets([response.data, ...tickets]);
       setNewTicketTitle('');
       setNewTicketPriority('Medium');
@@ -71,12 +60,28 @@ function App() {
     }
   };
 
-  // 📡 3. DELETE TICKET FUNCTION (Fixed: Added Authorization Headers)
+  // 📡 NEW: UPDATE STATUS API CALL HANDLER
+  const handleStatusChange = async (id, nextStatus) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.put(
+        `${API_URL}/${id}/status`,
+        { status: nextStatus },
+        { headers: { 'x-auth-token': token } }
+      );
+      
+      // Update local state smoothly: find the ticket by ID and swap out its status values
+      setTickets(tickets.map(ticket => ticket._id === id ? response.data : ticket));
+    } catch (error) {
+      console.error("Error updating ticket status:", error);
+    }
+  };
+
   const handleDelete = async (id) => {
     try {
       const token = localStorage.getItem('token');
       await axios.delete(`${API_URL}/${id}`, {
-        headers: { 'x-auth-token': token } // Secure delete clearance
+        headers: { 'x-auth-token': token }
       });
       setTickets(tickets.filter(ticket => ticket._id !== id));
     } catch (error) {
@@ -84,7 +89,6 @@ function App() {
     }
   };
 
-  // 🚪 Clear authentication storage data to log out cleanly
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
@@ -92,17 +96,16 @@ function App() {
     setTickets([]);
   };
 
-  // 🛡️ Guard Clause Check: If user session object is null, force display of the authentication screen form
   if (!user) {
     return <AuthPage onLoginSuccess={(loggedInUser) => setUser(loggedInUser)} />;
   }
 
   return (
     <div className="flex h-screen bg-gray-100 font-sans text-gray-900">
-      {/* Sidebar Panel Layout */}
+      {/* 🧭 Re-Branded Sidebar Menu */}
       <aside className="w-64 bg-slate-900 text-white flex flex-col justify-between p-6">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-indigo-400 mb-8">🐛 BugTracker</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-indigo-400 mb-8">🚀 IssueFlow Pro</h1>
           <nav className="space-y-4">
             <a href="#" className="block py-2.5 px-4 rounded transition bg-slate-800 text-white">📊 Dashboard</a>
             <a href="#" className="block py-2.5 px-4 rounded transition text-gray-400 hover:bg-slate-800 hover:text-white">🎟️ Tickets</a>
@@ -112,51 +115,45 @@ function App() {
           <div className="text-gray-400">
             User: <span className="text-indigo-300 font-medium block truncate">{user.name}</span>
           </div>
-          <button 
-            onClick={handleLogout}
-            className="w-full text-left py-2 px-3 rounded text-xs bg-red-950 text-red-300 hover:bg-red-900 transition font-medium"
-          >
-            🚪 Exit Session (Log Out)
+          <button onClick={handleLogout} className="w-full text-left py-2 px-3 rounded text-xs bg-red-950 text-red-300 hover:bg-red-900 transition font-medium">
+            Authorization Clear (Log Out)
           </button>
         </div>
       </aside>
 
-      {/* Main Panel Content Frame */}
+      {/* Main panel body container */}
       <main className="flex-1 p-8 overflow-y-auto">
         <header className="flex justify-between items-center mb-8 border-b pb-4">
           <div>
             <h2 className="text-3xl font-bold text-gray-800">Workspace Dashboard</h2>
-            <p className="text-gray-500 text-sm mt-1">Role-authenticated issue database logs</p>
+            <p className="text-gray-500 text-sm mt-1">Live agile development ticket analytics</p>
           </div>
-          <button 
-            onClick={() => setIsModalOpen(true)}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg shadow transition"
-          >
+          <button onClick={() => setIsModalOpen(true)} className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg shadow transition">
             + New Ticket
           </button>
         </header>
 
-        {/* Analytics Section */}
+        {/* Analytics Section Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-            <h3 className="text-gray-400 font-medium text-sm uppercase">Total Active Issues</h3>
-            <p className="text-3xl font-bold text-gray-900 mt-2">{tickets.length}</p>
+            <h3 className="text-gray-400 font-medium text-sm uppercase">Open Issues</h3>
+            <p className="text-3xl font-bold text-gray-900 mt-2">{tickets.filter(t => t.status === 'Open').length}</p>
           </div>
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-            <h3 className="text-gray-400 font-medium text-sm uppercase">High Priority</h3>
-            <p className="text-3xl font-bold text-red-600 mt-2">{tickets.filter(t => t.priority === 'High').length}</p>
+            <h3 className="text-gray-400 font-medium text-sm uppercase">In Progress</h3>
+            <p className="text-3xl font-bold text-blue-600 mt-2">{tickets.filter(t => t.status === 'In Progress').length}</p>
           </div>
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-            <h3 className="text-gray-400 font-medium text-sm uppercase">Status: Open</h3>
-            <p className="text-3xl font-bold text-green-600 mt-2">{tickets.filter(t => t.status === 'Open').length}</p>
+            <h3 className="text-gray-400 font-medium text-sm uppercase">Resolved</h3>
+            <p className="text-3xl font-bold text-green-600 mt-2">{tickets.filter(t => t.status === 'Resolved').length}</p>
           </div>
         </div>
 
-        {/* Grid Log Display */}
+        {/* Dynamic Log Cards Wrapper */}
         <h3 className="text-xl font-bold text-gray-800 mb-4">Open Bug Log Queue</h3>
         
         {loading ? (
-          <div className="text-center py-8 text-gray-500 font-medium animate-pulse">🔄 Querying server pipeline...</div>
+          <div className="text-center py-8 text-gray-500 font-medium animate-pulse">🔄 Loading cloud files...</div>
         ) : tickets.length === 0 ? (
           <div className="text-center py-8 text-gray-400 border border-dashed rounded-xl bg-white">No active issues logged.</div>
         ) : (
@@ -172,24 +169,38 @@ function App() {
                     }`}>
                       ⚠️ {ticket.priority} Priority
                     </span>
-                    <span className="text-xs bg-slate-100 text-slate-700 px-2.5 py-1 rounded-full font-medium">
+                    <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${
+                      ticket.status === 'Open' ? 'bg-gray-100 text-gray-700' :
+                      ticket.status === 'In Progress' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'
+                    }`}>
                       ⚙️ {ticket.status}
                     </span>
                   </div>
                 </div>
-                <button 
-                  onClick={() => handleDelete(ticket._id)}
-                  className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
-                >
-                  🗑️
-                </button>
+                
+                {/* 🔘 Dynamic Interactive Action Workflow Buttons Panel */}
+                <div className="flex items-center gap-2">
+                  {ticket.status === 'Open' && (
+                    <button onClick={() => handleStatusChange(ticket._id, 'In Progress')} className="px-3 py-1.5 text-xs font-semibold bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg transition">
+                      🛠️ Start Work
+                    </button>
+                  )}
+                  {ticket.status === 'In Progress' && (
+                    <button onClick={() => handleStatusChange(ticket._id, 'Resolved')} className="px-3 py-1.5 text-xs font-semibold bg-green-50 text-green-600 hover:bg-green-100 rounded-lg transition">
+                      ✅ Resolve Issue
+                    </button>
+                  )}
+                  <button onClick={() => handleDelete(ticket._id)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition" title="Delete Ticket">
+                    🗑️
+                  </button>
+                </div>
               </div>
             ))}
           </div>
         )}
       </main>
 
-      {/* Pop-up Data Modal Form */}
+      {/* Pop-up Form Dialog */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 relative">
@@ -197,27 +208,30 @@ function App() {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Issue Title Description</label>
-                <input 
-                  type="text" required value={newTicketTitle}
-                  onChange={(e) => setNewTicketTitle(e.target.value)}
-                  placeholder="e.g., Application router context crash" 
-                  className="w-full border p-2 rounded-lg outline-indigo-600 bg-white" 
-                />
+                <input type="text" required value={newTicketTitle} onChange={(e) => setNewTicketTitle(e.target.value)} placeholder="e.g., Application router context crash" className="w-full border p-2 rounded-lg outline-indigo-600 bg-white" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Set Issue Priority Level</label>
-                <select 
-                  value={newTicketPriority} onChange={(e) => setNewTicketPriority(e.target.value)}
-                  className="w-full border p-2 rounded-lg outline-indigo-600 bg-white"
-                >
+                <select value={newTicketPriority} onChange={(e) => setNewTicketPriority(e.target.value)} className="w-full border p-2 rounded-lg outline-indigo-600 bg-white">
                   <option value="Low">Low Priority</option>
                   <option value="Medium">Medium Priority</option>
                   <option value="High">High Priority</option>
                 </select>
               </div>
-              <div className="flex justify-end gap-3 pt-2">
-                <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition">Cancel Close</button>
-                <button type="submit" className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">Add Bug Ticket</button>
+              <div className="flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-indigo-600 text-white hover:bg-indigo-700 rounded-lg transition"
+                >
+                  Add Bug Ticket
+                </button>
               </div>
             </form>
           </div>

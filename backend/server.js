@@ -100,6 +100,33 @@ app.get('/', (req, res) => {
   res.send('Bug Tracker API Server is running smoothly.');
 });
 
+// 🟢 Route 5: Update Ticket Status (PUT)
+app.put('/api/tickets/:id/status', authMiddleware, async (req, res) => {
+  const { status } = req.body;
+  
+  // Guard clause: Only allow valid industry workflow stages
+  const allowedStatuses = ['Open', 'In Progress', 'Resolved'];
+  if (!allowedStatuses.includes(status)) {
+    return res.status(400).json({ error: 'Invalid status stage parameter' });
+  }
+
+  try {
+    const ticket = await Ticket.findById(req.params.id);
+    if (!ticket) return res.status(404).json({ error: 'Ticket not found' });
+    
+    // Security check: Verify user owns this ticket record
+    if (ticket.user.toString() !== req.userId) {
+      return res.status(403).json({ error: 'Unauthorized status modification' });
+    }
+
+    ticket.status = status;
+    const updatedTicket = await ticket.save();
+    res.json(updatedTicket);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to patch ticket status' });
+  }
+});
+
 // 🚀 Start the Express Listening Server Thread
 app.listen(PORT, () => {
   console.log(`🚀 Secure Server running on: http://localhost:${PORT}`);
