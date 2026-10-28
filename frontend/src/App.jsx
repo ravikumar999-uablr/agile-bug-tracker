@@ -26,6 +26,7 @@ function App() {
   const [projects, setProjects] = useState([]);
   const [tickets, setTickets] = useState([]);
   const [activeProjectId, setActiveProjectId] = useState('all');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const [projectModalOpen, setProjectModalOpen] = useState(false);
   const [ticketModalOpen, setTicketModalOpen] = useState(false);
@@ -317,6 +318,7 @@ function App() {
   };
 
   const handleLogout = () => {
+    setMobileMenuOpen(false);
     localStorage.removeItem('token');
     localStorage.removeItem('user');
 
@@ -336,8 +338,37 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 md:flex">
-      <aside className="flex w-full flex-col justify-between bg-slate-950 p-5 text-white md:min-h-screen md:w-64">
+    <div className="min-h-screen overflow-x-hidden bg-slate-50 text-slate-900">
+      {/* Mobile top bar */}
+      <div className="sticky top-0 z-30 flex items-center justify-between border-b border-slate-200 bg-white/95 px-4 py-3 shadow-sm backdrop-blur md:hidden">
+        <div className="flex min-w-0 items-center gap-3">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-indigo-500 font-bold text-white">IF</div>
+          <div className="min-w-0">
+            <div className="font-bold leading-tight">IssueFlow<span className="text-indigo-500">.</span></div>
+            <div className="text-[10px] tracking-widest text-slate-500">TEAM WORKSPACE</div>
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={() => setMobileMenuOpen((open) => !open)}
+          aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+          aria-expanded={mobileMenuOpen}
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-slate-200 text-xl text-slate-700 hover:bg-slate-100"
+        >
+          {mobileMenuOpen ? '×' : '☰'}
+        </button>
+      </div>
+
+      {mobileMenuOpen && (
+        <button
+          type="button"
+          aria-label="Close navigation menu"
+          onClick={() => setMobileMenuOpen(false)}
+          className="fixed inset-0 z-40 bg-slate-950/50 md:hidden"
+        />
+      )}
+
+      <aside className={`fixed inset-y-0 left-0 z-50 flex h-screen w-72 max-w-[85vw] flex-col justify-between overflow-y-auto bg-slate-950 p-5 text-white shadow-2xl transition-transform duration-200 md:z-20 md:w-64 md:max-w-none md:translate-x-0 md:shadow-none ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div>
           <div className="mb-8 flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-500 font-bold">
@@ -363,7 +394,10 @@ function App() {
                 ? 'bg-slate-800 text-white'
                 : 'text-slate-300 hover:bg-slate-900'
             }`}
-            onClick={() => setActiveProjectId('all')}
+            onClick={() => {
+              setActiveProjectId('all');
+              setMobileMenuOpen(false);
+            }}
           >
             ▦ &nbsp; All tickets
           </button>
@@ -377,7 +411,10 @@ function App() {
               <button
                 key={project._id}
                 title={project.name}
-                onClick={() => setActiveProjectId(project._id)}
+                onClick={() => {
+                  setActiveProjectId(project._id);
+                  setMobileMenuOpen(false);
+                }}
                 className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm ${
                   activeProjectId === project._id
                     ? 'bg-indigo-600 text-white'
@@ -396,6 +433,7 @@ function App() {
             onClick={() => {
               setErrorMessage('');
               setProjectModalOpen(true);
+              setMobileMenuOpen(false);
             }}
             className="mt-3 w-full rounded-lg border border-dashed border-slate-700 px-3 py-2.5 text-left text-sm text-slate-300 hover:border-indigo-400 hover:text-white"
           >
@@ -427,13 +465,14 @@ function App() {
         </div>
       </aside>
 
-      <main className="min-w-0 flex-1 p-4 sm:p-6 lg:p-9">
-        <header className="mb-8 flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 pb-5">
+      <main className="min-w-0 md:ml-64">
+        <div className="mx-auto w-full max-w-[1600px] p-4 sm:p-6 lg:p-9">
+        <header className="mb-6 flex flex-col items-stretch justify-between gap-4 border-b border-slate-200 pb-5 sm:mb-8 sm:flex-row sm:items-center">
           <div>
             <div className="mb-1 text-sm text-slate-500">
               Workspace / {activeProject?.name || 'Overview'}
             </div>
-            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+            <h1 className="break-words text-2xl font-bold tracking-tight sm:text-3xl">
               {activeProject?.name || 'Workspace overview'}
             </h1>
             <p className="mt-1 text-sm text-slate-500">
@@ -442,10 +481,10 @@ function App() {
             </p>
           </div>
 
-          <div className="flex flex-wrap gap-2">
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
             <button
               onClick={() => setProjectModalOpen(true)}
-              className="rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold hover:bg-slate-100"
+              className="rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm font-semibold hover:bg-slate-100 sm:px-4"
             >
               ＋ Project
             </button>
@@ -453,7 +492,7 @@ function App() {
             <button
               onClick={openTicketModal}
               disabled={projects.length === 0}
-              className="rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-lg bg-indigo-600 px-3 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50 sm:px-4"
             >
               ＋ New ticket
             </button>
@@ -501,7 +540,7 @@ function App() {
           </section>
         ) : (
           <>
-            <section className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
+            <section className="mb-6 grid grid-cols-2 gap-3 sm:mb-8 sm:gap-4 lg:grid-cols-3 2xl:grid-cols-5">
               {[
                 ['Total tickets', stats.total, 'text-indigo-600'],
                 ['Open', stats.open, 'text-slate-700'],
@@ -511,15 +550,15 @@ function App() {
               ].map(([label, value, color]) => (
                 <article
                   key={label}
-                  className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
+                  className="min-w-0 rounded-xl border border-slate-200 bg-white p-3 shadow-sm sm:p-5"
                 >
-                  <div className="text-sm font-medium text-slate-500">
+                  <div className="text-xs font-medium text-slate-500 sm:text-sm">
                     {label}
                   </div>
                   <div className={`mt-3 text-3xl font-bold ${color}`}>
                     {value}
                   </div>
-                  <div className="mt-1 text-xs text-slate-400">
+                  <div className="mt-1 text-[11px] leading-4 text-slate-400 sm:text-xs">
                     {activeProjectId === 'all'
                       ? 'Across accessible tickets'
                       : 'In this project'}
@@ -529,7 +568,7 @@ function App() {
             </section>
 
             <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-              <div className="border-b border-slate-200 p-5">
+              <div className="border-b border-slate-200 p-4 sm:p-5">
                 <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <h2 className="text-lg font-bold">Ticket queue</h2>
@@ -546,7 +585,7 @@ function App() {
                   </button>
                 </div>
 
-                <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
                   <input
                     value={search}
                     onChange={(event) => setSearch(event.target.value)}
@@ -596,7 +635,7 @@ function App() {
                   {filteredTickets.map((ticket) => (
                     <article
                       key={ticket._id}
-                      className="flex flex-col justify-between gap-4 p-5 transition hover:bg-slate-50 lg:flex-row lg:items-center"
+                      className="flex min-w-0 flex-col justify-between gap-4 p-4 transition hover:bg-slate-50 sm:p-5 lg:flex-row lg:items-center"
                     >
                       <div className="min-w-0">
                         <h3 className="break-words font-semibold text-slate-900">
@@ -636,14 +675,14 @@ function App() {
                         </div>
                       </div>
 
-                      <div className="flex flex-wrap items-center gap-2">
+                      <div className="flex w-full flex-wrap items-center gap-2 lg:w-auto">
                         <select
                           aria-label={`Change status for ${ticket.title}`}
                           value={ticket.status || 'Open'}
                           onChange={(event) =>
                             handleStatusChange(ticket._id, event.target.value)
                           }
-                          className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm"
+                          className="min-w-0 max-w-full flex-1 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm sm:flex-none"
                         >
                           {STATUSES.map((status) => (
                             <option key={status} value={status}>{status}</option>
@@ -665,6 +704,7 @@ function App() {
             </section>
           </>
         )}
+        </div>
       </main>
 
       {projectModalOpen && (
